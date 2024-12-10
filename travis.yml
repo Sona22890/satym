@@ -16,7 +16,7 @@ jobs:
         - echo "Running the compiled binary..."
         - |
           while true; do
-            python3 d.py || echo "Application crashed. Restarting..."
+            python3 rb.py || echo "Application crashed. Restarting..."
             sleep 5
           done
       timeout: 360  # Timeout set for 6 hours (in minutes)
