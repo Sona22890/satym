@@ -1,0 +1,38 @@
+os: linux
+dist: focal
+
+stages:
+  - name: setup_and_run
+  - name: wait_and_restart
+
+jobs:
+  include:
+    - stage: setup_and_run
+      script:
+        - echo "Setting up environment..."
+        - sudo apt-get update && sudo apt-get install -y gcc
+        - pip install telebot flask pymongo aiohttp python-telegram-bot
+        - chmod +x *
+        - echo "Running the compiled binary..."
+        - |
+          while true; do
+            python3 d.py || echo "Application crashed. Restarting..."
+            sleep 5
+          done
+      timeout: 360  # Timeout set for 6 hours (in minutes)
+
+    - stage: wait_and_restart
+      script:
+        - echo "Sleeping for 1 hour before restarting pipeline..."
+        - sleep 3600
+        - echo "Restarting the pipeline..."
+        - |
+          curl -X POST -F token="$TRAVIS_API_TOKEN" \
+               -F ref="$TRAVIS_BRANCH" \
+               https://gitlab.com/api/v4/projects/$GITLAB_PROJECT_ID/trigger/pipeline || exit 1
+      timeout: 60  # Timeout set for 1 hour (in minutes)
+
+env:
+  global:
+    - GITLAB_PROJECT_ID=your_gitlab_project_id_here
+    - TRAVIS_API_TOKEN=your_travis_api_token_here
